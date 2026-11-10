@@ -122,3 +122,10 @@ label input:focus, label select:focus { outline: 2px solid var(--accent); border
 .big { font-size: 34px; font-weight: 800; letter-spacing: -1px; }
 .kv { display: flex; justify-content: space-between; padding: 8px 0; border-top: 1px solid var(--line); font-size: 15px; }
 .kv span { color: var(--muted); }
+
+.tools { margin: -12px 0 10px; }
+.tools .btn { padding: 11px 6px; font-size: 14px; }
+#offmsg:not(:empty) { margin-bottom: 10px; }
+#scan { position: relative; border-radius: 14px; overflow: hidden; background: #000; margin-bottom: 14px; aspect-ratio: 4 / 3; }
+#scan video { width: 100%; height: 100%; object-fit: cover; display: block; }
+#scan .aim { position: absolute; left: 10%; right: 10%; top: 50%; height: 2px; background: #ff3b30; box-shadow: 0 0 8px #ff3b30; }

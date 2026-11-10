@@ -197,7 +197,7 @@ function render() {
 
 /* ---------- sheets ---------- */
 function openSheet(html) { $('#sheet').innerHTML = html; $('#sheet').hidden = $('#backdrop').hidden = false; }
-function closeSheet() { $('#sheet').hidden = $('#backdrop').hidden = true; $('#sheet').innerHTML = ''; draft = null; }
+function closeSheet() { stopScan(); $('#sheet').hidden = $('#backdrop').hidden = true; $('#sheet').innerHTML = ''; draft = null; }
 
 function habitSheet() {
   openSheet(`<h2>New habit</h2><form data-form="habit">
@@ -209,6 +209,10 @@ function habitSheet() {
 function mealSheet(meal) {
   draft = null;
   openSheet(`<h2>Add to ${meal}</h2><form data-form="meal" data-meal="${meal}">
+    <div id="scan" hidden><video playsinline muted autoplay></video><div class="aim"></div></div>
+    <div class="g2 tools"><button type="button" class="btn ghost" data-a="scan">📷 Scan barcode</button>
+      <button type="button" class="btn ghost" data-a="online">🔎 Search Poland</button></div>
+    <div class="muted" id="offmsg"></div>
     <label>Food<input name="name" required maxlength="60" placeholder="Search or type any food" autocomplete="off"></label>
     <div class="chips" id="sugg"></div>
     <div class="g2"><label>Amount (g)<input name="g" inputmode="decimal" placeholder="optional"></label>
@@ -230,6 +234,80 @@ function fillFood(f) {
   const g = num(f.g.value), [k, p, c, fa] = draft.map(v => v * g);
   f.kcal.value = r0(k); f.p.value = r1(p); f.c.value = r1(c); f.f.value = r1(fa);
 }
+
+/* ---------- Open Food Facts (Polish product database) + barcode scanner ---------- */
+const OFF_FIELDS = 'code,product_name,product_name_pl,generic_name_pl,brands,nutriments,serving_quantity';
+const offMsg = t => { const el = $('#offmsg'); if (el) el.textContent = t; };
+function offFood(p) {
+  const n = p.nutriments || {}, name = (p.product_name_pl || p.product_name || p.generic_name_pl || '').trim();
+  let kcal = n['energy-kcal_100g'];
+  if (kcal == null && n['energy_100g'] != null) kcal = n['energy_100g'] / 4.184; // only kJ on the label
+  if (!name || kcal == null) return null;
+  const brand = (p.brands || '').split(',')[0].trim(), sq = num(p.serving_quantity);
+  return { name: (brand && !name.toLowerCase().includes(brand.toLowerCase()) ? `${name} (${brand})` : name).slice(0, 60),
+    g: sq > 0 && sq < 2000 ? sq : 100, per: [num(kcal) / 100, num(n.proteins_100g) / 100, num(n.carbohydrates_100g) / 100, num(n.fat_100g) / 100] };
+}
+async function offGet(url) {
+  const ctl = new AbortController(), timer = setTimeout(() => ctl.abort(), 15000);
+  try { const r = await fetch(url, { signal: ctl.signal }); if (!r.ok && r.status !== 404) throw new Error(r.status); return await r.json(); }
+  finally { clearTimeout(timer); }
+}
+function applyFood(x) {
+  const f = $('#sheet form[data-form=meal]'); if (!f) return;
+  f.name.value = x.name; draft = x.per; f.g.value = r0(x.g); fillFood(f); $('#sugg').innerHTML = '';
+}
+async function lookupBarcode(code) {
+  offMsg(`Looking up ${code}…`);
+  try {
+    const d = await offGet(`https://world.openfoodfacts.org/api/v2/product/${encodeURIComponent(code)}?lc=pl&fields=${OFF_FIELDS}`);
+    const x = d && d.product && offFood(d.product);
+    if (!$('#offmsg')) return;
+    if (x) { applyFood(x); offMsg('Found. Change the amount to what you ate and the numbers update.'); }
+    else offMsg(d && d.product ? `Product ${code} has no nutrition data in the database. Enter the values from the label.` : `Barcode ${code} is not in the database. Enter the values from the label.`);
+  } catch (e) { offMsg('Could not reach the food database. Check your connection and try again.'); }
+}
+async function searchOnline() {
+  const f = $('#sheet form[data-form=meal]'), q = f.name.value.trim();
+  if (q.length < 2) { offMsg('Type a product name first, then tap Search Poland.'); f.name.focus(); return; }
+  offMsg('Searching Polish products…');
+  try {
+    const d = await offGet(`https://pl.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(q)}&search_simple=1&action=process&json=1&page_size=20&fields=${OFF_FIELDS}`);
+    if (!$('#offmsg')) return;
+    pool = (d.products || []).map(offFood).filter(Boolean).slice(0, 12);
+    $('#sugg').innerHTML = pool.map((x, i) => `<button type="button" data-a="pick" data-i="${i}">${esc(x.name)} · ${r0(x.per[0] * 100)} kcal/100 g</button>`).join('');
+    offMsg(pool.length ? 'Pick a product:' : 'No products found. Try a shorter name or scan the barcode.');
+  } catch (e) { offMsg('Could not reach the food database. Check your connection and try again.'); }
+}
+let scanner = null, zxLoading = null;
+const loadZXing = () => zxLoading ||= new Promise((ok, bad) => { const s = document.createElement('script'); s.src = 'vendor/zxing.min.js'; s.onload = ok; s.onerror = () => { zxLoading = null; bad(); }; document.head.append(s); });
+function stopScan() {
+  if (scanner) { try { scanner.reset(); } catch (e) { /* already stopped */ } scanner = null; }
+  const box = $('#scan'); if (box) box.hidden = true;
+  const b = $('[data-a=scan]'); if (b) b.textContent = '📷 Scan barcode';
+}
+async function startScan() {
+  if (scanner) { stopScan(); offMsg(''); return; }
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { manualBarcode('The camera is not available here.'); return; }
+  offMsg('Starting camera…');
+  try {
+    await loadZXing();
+    const hints = new Map([[ZXing.DecodeHintType.POSSIBLE_FORMATS, [ZXing.BarcodeFormat.EAN_13, ZXing.BarcodeFormat.EAN_8, ZXing.BarcodeFormat.UPC_A, ZXing.BarcodeFormat.UPC_E]]]);
+    const mine = scanner = new ZXing.BrowserMultiFormatReader(hints, 250);
+    $('#scan').hidden = false; $('[data-a=scan]').textContent = '✕ Stop camera';
+    await mine.decodeFromConstraints({ audio: false, video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 } } }, $('#scan video'), res => {
+      if (!res || scanner !== mine) return;
+      stopScan(); if (navigator.vibrate) navigator.vibrate(60);
+      lookupBarcode(res.getText());
+    });
+    if (scanner === mine) offMsg('Point the camera at the barcode on the package.');
+  } catch (e) { stopScan(); manualBarcode(e && e.name === 'NotAllowedError' ? 'Camera access was denied (allow it in Settings → Safari → Camera).' : 'Could not start the camera.'); }
+}
+function manualBarcode(why) {
+  offMsg(why);
+  const code = (prompt(why + '\nType the barcode number from the package instead:') || '').replace(/\D/g, '');
+  if (code.length >= 8) lookupBarcode(code);
+}
+
 function workoutSheet() {
   openSheet(`<h2>Log workout</h2><form data-form="workout">
     <label>Activity<select name="type">${SPORTS.map(s => `<option>${s[0]}</option>`).join('')}</select></label>
@@ -257,6 +335,8 @@ const ACTIONS = {
   delhabit: e => { const h = S.habits.find(x => x.id === e.dataset.id); if (h && confirm(`Delete “${h.name}” and its history?`)) {
     S.habits = S.habits.filter(x => x !== h); for (const d in S.habitLog) delete S.habitLog[d][h.id]; save(); render(); } },
   newmeal: e => mealSheet(e.dataset.meal),
+  scan: startScan,
+  online: searchOnline,
   pick: e => { const x = pool[+e.dataset.i], f = e.closest('form'); f.name.value = x.name;
     if (x.per) { draft = x.per; f.g.value = r0(x.g); fillFood(f); }
     else { draft = null; f.g.value = ''; f.kcal.value = r0(x.flat.kcal); f.p.value = r1(x.flat.p); f.c.value = r1(x.flat.c); f.f.value = r1(x.flat.f); }

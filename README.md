@@ -5,7 +5,8 @@ No account, no server: all data stays on the device and the app works offline.
 
 - **Today** – calories left, macros, habit checklist, meal and training summary for any day
 - **Habits** – daily habits with a 7-day view and streaks
-- **Meals** – breakfast / lunch / dinner / snacks with calories and macros, built-in food list, recent foods
+- **Meals** – breakfast / lunch / dinner / snacks with calories and macros, built-in food list, recent foods,
+  barcode scanning and Polish product search via [Open Food Facts](https://pl.openfoodfacts.org) (needs internet)
 - **Training** – workout log with calories burned estimated from activity, duration and body weight
 - **Calories** – BMR / TDEE calculator (Mifflin-St Jeor), daily target and macro split, backup export/import
 
@@ -21,3 +22,5 @@ No account, no server: all data stays on the device and the app works offline.
     python3 -m http.server 8000
 
 Plain HTML/CSS/JS, no build step.
+
+Barcode reading uses [ZXing](https://github.com/zxing-js/library) (Apache-2.0), bundled in `vendor/`.
