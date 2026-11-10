@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<title>DayTrack</title>
+<meta name="description" content="Habits, meals, training and calories in one place.">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#f4f6f5" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#101413" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="DayTrack">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<link rel="icon" type="image/png" href="icons/icon-192.png">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header id="top">
+  <h1 id="title">Today</h1>
+  <div id="datenav">
+    <button data-a="day" data-n="-1" aria-label="Previous day">‹</button>
+    <button id="datelabel" data-a="day" data-n="0">Today</button>
+    <button data-a="day" data-n="1" aria-label="Next day">›</button>
+  </div>
+</header>
+<main id="view"></main>
+<nav id="tabs">
+  <button data-a="tab" data-tab="today"><span>☀️</span>Today</button>
+  <button data-a="tab" data-tab="habits"><span>✅</span>Habits</button>
+  <button data-a="tab" data-tab="meals"><span>🍽️</span>Meals</button>
+  <button data-a="tab" data-tab="training"><span>🏋️</span>Training</button>
+  <button data-a="tab" data-tab="profile"><span>🔥</span>Calories</button>
+</nav>
+<div id="backdrop" data-a="close" hidden></div>
+<section id="sheet" hidden></section>
+<script src="app.js"></script>
+</body>
+</html>
