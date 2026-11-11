@@ -251,3 +251,10 @@ label.row select { flex: 1.4; max-width: 62%; }
 .chart .goal-label { fill: var(--up); font-weight: 700; }
 .row.log small { margin-top: 2px; }
 #tabs button { font-size: 10.5px; }
+
+/* hadith of the day */
+.hadith { padding: 16px; }
+.hadith small { display: block; color: var(--muted); font-size: 13px; }
+.hadith p[lang="ar"] { font-size: 21px; line-height: 1.9; text-align: right; margin: 6px 0 10px; }
+.hadith .en { font-size: 15px; }
+.hadith em { display: block; margin-top: 10px; font-style: normal; font-size: 13px; font-weight: 600; color: var(--accent); }

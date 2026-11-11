@@ -235,6 +235,19 @@ function habitRows(d) {
   }).join('');
 }
 
+// A different hadith each day, cycling through the list in order.
+function hadithCard() {
+  const dayNumber = Math.round(dateOf(cur).getTime() / 86400000);
+  const [ar, en, source] = HADITHS[((dayNumber % HADITHS.length) + HADITHS.length) % HADITHS.length];
+  return `<h3>Hadith of the day <small lang="ar">حديث اليوم</small></h3>
+  <section class="card hadith">
+    <small>The Prophet ﷺ said:</small>
+    <p lang="ar" dir="rtl">${ar}</p>
+    <p class="en">${en}</p>
+    <em>${source}</em>
+  </section>`;
+}
+
 function renderToday() {
   const d = peek(cur);
   const isToday = cur === todayKey();
@@ -257,6 +270,8 @@ function renderToday() {
     <div><h2>${done === total ? 'All done — ما شاء الله' : 'Daily progress'}</h2>
       <p>Prayers, adhkar and daily habits</p></div>
   </section>
+
+  ${hadithCard()}
 
   <h3>Prayers <small>${pc}/5</small></h3>
   <section class="card prayers">
