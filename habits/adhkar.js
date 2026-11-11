@@ -84,3 +84,36 @@ const ADHKAR = [
     text: 'أَسْتَغْفِرُ اللهَ وَأَتُوبُ إِلَيْهِ'
   }
 ];
+
+const dhikrText = id => ADHKAR.find(a => a.id === id).text;
+
+// After each prayer.
+const ADHKAR_PRAYER = [
+  { id: 'p-istighfar', count: 3, text: 'أَسْتَغْفِرُ اللهَ' },
+  { id: 'p-salam', count: 1, text: 'اللَّهُمَّ أَنْتَ السَّلَامُ، وَمِنْكَ السَّلَامُ، تَبَارَكْتَ يَا ذَا الْجَلَالِ وَالْإِكْرَامِ' },
+  { id: 'p-mani', count: 1, text: 'لَا إِلَهَ إِلَّا اللهُ وَحْدَهُ لَا شَرِيكَ لَهُ، لَهُ الْمُلْكُ وَلَهُ الْحَمْدُ وَهُوَ عَلَى كُلِّ شَيْءٍ قَدِيرٌ، اللَّهُمَّ لَا مَانِعَ لِمَا أَعْطَيْتَ، وَلَا مُعْطِيَ لِمَا مَنَعْتَ، وَلَا يَنْفَعُ ذَا الْجَدِّ مِنْكَ الْجَدُّ' },
+  { id: 'p-subhan', count: 33, text: 'سُبْحَانَ اللهِ' },
+  { id: 'p-hamd', count: 33, text: 'الْحَمْدُ لِلَّهِ' },
+  { id: 'p-akbar', count: 33, text: 'اللهُ أَكْبَرُ' },
+  { id: 'p-tahlil', count: 1, text: 'لَا إِلَهَ إِلَّا اللهُ وَحْدَهُ لَا شَرِيكَ لَهُ، لَهُ الْمُلْكُ وَلَهُ الْحَمْدُ وَهُوَ عَلَى كُلِّ شَيْءٍ قَدِيرٌ' },
+  { id: 'p-kursi', count: 1, title: 'Ayat al-Kursi (2:255)', text: dhikrText('kursi') },
+  { id: 'p-ikhlas', count: 1, title: 'Surat al-Ikhlas · 3× after Fajr and Maghrib', text: dhikrText('ikhlas') },
+  { id: 'p-falaq', count: 1, title: 'Surat al-Falaq · 3× after Fajr and Maghrib', text: dhikrText('falaq') },
+  { id: 'p-nas', count: 1, title: 'Surat an-Nas · 3× after Fajr and Maghrib', text: dhikrText('nas') },
+  { id: 'p-ainni', count: 1, text: 'اللَّهُمَّ أَعِنِّي عَلَى ذِكْرِكَ، وَشُكْرِكَ، وَحُسْنِ عِبَادَتِكَ' }
+];
+
+// Before sleep.
+const ADHKAR_SLEEP = [
+  { id: 's-bismika', count: 1, text: 'بِاسْمِكَ اللَّهُمَّ أَمُوتُ وَأَحْيَا' },
+  { id: 's-kursi', count: 1, title: 'Ayat al-Kursi (2:255)', text: dhikrText('kursi') },
+  { id: 's-ikhlas', count: 3, title: 'Surat al-Ikhlas', text: dhikrText('ikhlas') },
+  { id: 's-falaq', count: 3, title: 'Surat al-Falaq', text: dhikrText('falaq') },
+  { id: 's-nas', count: 3, title: 'Surat an-Nas', text: dhikrText('nas') },
+  { id: 's-qini', count: 3, text: 'اللَّهُمَّ قِنِي عَذَابَكَ يَوْمَ تَبْعَثُ عِبَادَكَ' },
+  { id: 's-janbi', count: 1, text: 'بِاسْمِكَ رَبِّي وَضَعْتُ جَنْبِي، وَبِكَ أَرْفَعُهُ، فَإِنْ أَمْسَكْتَ نَفْسِي فَارْحَمْهَا، وَإِنْ أَرْسَلْتَهَا فَاحْفَظْهَا بِمَا تَحْفَظُ بِهِ عِبَادَكَ الصَّالِحِينَ' },
+  { id: 's-subhan', count: 33, text: 'سُبْحَانَ اللهِ' },
+  { id: 's-hamd', count: 33, text: 'الْحَمْدُ لِلَّهِ' },
+  { id: 's-akbar', count: 34, text: 'اللهُ أَكْبَرُ' },
+  { id: 's-aslamtu', count: 1, text: 'اللَّهُمَّ أَسْلَمْتُ نَفْسِي إِلَيْكَ، وَفَوَّضْتُ أَمْرِي إِلَيْكَ، وَوَجَّهْتُ وَجْهِي إِلَيْكَ، وَأَلْجَأْتُ ظَهْرِي إِلَيْكَ، رَغْبَةً وَرَهْبَةً إِلَيْكَ، لَا مَلْجَأَ وَلَا مَنْجَا مِنْكَ إِلَّا إِلَيْكَ، آمَنْتُ بِكِتَابِكَ الَّذِي أَنْزَلْتَ، وَبِنَبِيِّكَ الَّذِي أَرْسَلْتَ' }
+];

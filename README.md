@@ -2,10 +2,11 @@
 
 A phone app (installable web app) for daily habit tracking. No account, no server — data stays on the device and it works offline.
 
-- **Today** – tick off the five prayers, morning/evening adhkar, 2 pages of Quran and gym. Browse back to earlier days.
-- **Adhkar** – أذكار الصباح and أذكار المساء with tap counters for the repetitions.
-- **Weight** – one entry per day, with a chart, changes and full history.
-- **Progress** – 30-day grid and streak per habit, plus JSON export/import backup.
+- **Today** – prayer times and next prayer, the five prayers (on time / jama’ah / late), sunnah extras, adhkar, and your own habits (add, rename, remove) with a gym log.
+- **Adhkar** – morning, evening, after-prayer and sleep adhkar with tap counters, plus a free tasbih counter.
+- **Weight** – one entry per day, chart with goal line, BMI, changes and full history.
+- **Progress** – weekly/monthly summary and a 30-day grid and streak per habit.
+- **Settings** – theme, location and calculation method, reminders, calendar export, JSON backup.
 
 ## Install on a phone
 
