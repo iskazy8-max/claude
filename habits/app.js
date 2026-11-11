@@ -177,6 +177,7 @@ let period = new Date().getHours() < 15 ? 'morning' : 'evening';
 let range = 30;
 let span = 7;
 let editing = false;
+let showAllWeights = false;
 let theme = document.documentElement.dataset.theme || 'light';
 
 function applyTheme() {
@@ -382,60 +383,96 @@ function chart(entries) {
 
 function renderWeight() {
   const all = weightEntries();
-  const from = range ? shift(todayKey(), -range + 1) : '';
+  const today = todayKey();
+  const from = range ? shift(today, -range + 1) : '';
   const last = all[all.length - 1];
   const prev = all[all.length - 2];
-  const week = all.filter(e => e.k >= shift(todayKey(), -6));
+  const first = all[0];
+  const week = all.filter(e => e.k >= shift(today, -6));
   const avg = week.length ? week.reduce((s, e) => s + e.w, 0) / week.length : null;
-  let toGoal = '<b>—</b>';
-  if (last && state.goal) {
-    const left = Math.round(Math.abs(last.w - state.goal) * 10) / 10;
-    // Reached when the latest weight is at the goal, or has crossed it from the starting side.
-    const reached = left === 0 || (all[0].w - state.goal) * (last.w - state.goal) < 0;
-    toGoal = reached ? '<b class="down">Reached ✓</b>' : `<b>${left.toFixed(1)} kg</b>`;
-  }
   const bmi = last && state.height ? last.w / Math.pow(state.height / 100, 2) : null;
+  const loggedToday = state.weights[today] != null;
+
+  // Headline card: current weight, last change and progress toward the goal.
+  let hero;
+  if (!last) {
+    hero = `<section class="card hero"><small>Current weight</small>
+      <div class="big muted">—</div><p>Add your first entry below to start tracking.</p></section>`;
+  } else {
+    let goal = `<button class="link" data-act="open-goal">Set a goal ›</button>`;
+    if (state.goal) {
+      const left = Math.round(Math.abs(last.w - state.goal) * 10) / 10;
+      // Reached when the latest weight is at the goal, or has crossed it from the starting side.
+      const reached = left === 0 || (first.w - state.goal) * (last.w - state.goal) < 0;
+      const total = first.w - state.goal;
+      const pct = reached ? 100 : total ? Math.max(0, Math.min(100, (first.w - last.w) / total * 100)) : 0;
+      goal = `<div class="bar"><i style="width:${pct}%"></i></div>
+        <div class="ends"><span>Start ${first.w.toFixed(1)}</span>
+          <b>${reached ? 'Goal reached ✓' : `${left.toFixed(1)} kg to go`}</b>
+          <span>Goal ${state.goal.toFixed(1)}</span></div>`;
+    }
+    hero = `<section class="card hero">
+      <small>Current weight · ${last.k === today ? 'today' : fmt(last.k, { day: 'numeric', month: 'short' })}</small>
+      <div class="big">${last.w.toFixed(1)}<span>kg</span>${prev ? `<em>${delta(last.w, prev.w)} since last</em>` : ''}</div>
+      ${goal}
+    </section>`;
+  }
+
+  const start = loggedToday ? state.weights[today] : last ? last.w : null;
+  const recent = all.slice().reverse();
+  const shown = showAllWeights ? recent : recent.slice(0, 7);
 
   return `${title('Weight', 'One entry per day, in kg')}
-  <form class="card weigh" data-form="weight">
-    <label>Date<input type="date" name="date" value="${todayKey()}" max="${todayKey()}" required></label>
-    <label>Weight (kg)<input type="number" name="kg" inputmode="decimal" step="0.1" min="20" max="400"
-      placeholder="${last ? last.w.toFixed(1) : '75.0'}" required></label>
-    <button type="submit">Save</button>
+  ${hero}
+
+  <form class="card logger" data-form="weight">
+    <div class="logtop"><h2>${loggedToday ? 'Today’s weight' : 'Log weight'}</h2>
+      <input type="date" name="date" value="${today}" max="${today}" required aria-label="Date"></div>
+    <div class="stepper">
+      <button type="button" data-act="kg-step" data-id="-0.1" aria-label="Decrease by 0.1">−</button>
+      <label><input type="number" name="kg" inputmode="decimal" step="0.1" min="20" max="400"
+        value="${start ? start.toFixed(1) : ''}" placeholder="75.0" required aria-label="Weight in kg"><span>kg</span></label>
+      <button type="button" data-act="kg-step" data-id="0.1" aria-label="Increase by 0.1">+</button>
+    </div>
+    <button type="submit" class="primary">${loggedToday ? 'Update' : 'Save'}</button>
   </form>
 
-  <section class="stats">
-    <div class="card"><small>Current</small><b>${last ? last.w.toFixed(1) : '—'}</b></div>
-    <div class="card"><small>Since last</small>${prev ? delta(last.w, prev.w) : '<b>—</b>'}</div>
-    <div class="card"><small>Since start</small>${prev ? delta(last.w, all[0].w) : '<b>—</b>'}</div>
-    <div class="card"><small>7-day avg</small><b>${avg ? avg.toFixed(1) : '—'}</b></div>
-    <div class="card"><small>To goal</small>${toGoal}</div>
+  ${last ? `<section class="stats">
+    <div class="card"><small>Since start</small>${prev ? delta(last.w, first.w) : '<b>—</b>'}</div>
+    <div class="card"><small>7-day average</small><b>${avg ? avg.toFixed(1) : '—'}</b></div>
     <div class="card"><small>BMI</small><b>${bmi ? bmi.toFixed(1) : '—'}</b></div>
   </section>
 
-  <div class="seg small">
-    ${[[30, '30 days'], [90, '90 days'], [0, 'All']].map(([n, l]) =>
-      `<button class="${range === n ? 'on' : ''}" data-act="range" data-id="${n}">${l}</button>`).join('')}
-  </div>
-  <section class="card chart">${chart(all.filter(e => e.k >= from))}</section>
+  <section class="card chart">
+    <div class="charthead"><h2>Trend</h2>
+      <div class="seg small">
+        ${[[30, '30 d'], [90, '90 d'], [0, 'All']].map(([n, l]) =>
+          `<button class="${range === n ? 'on' : ''}" data-act="range" data-id="${n}">${l}</button>`).join('')}
+      </div></div>
+    ${chart(all.filter(e => e.k >= from))}
+  </section>` : ''}
 
-  <h3>Goal</h3>
-  <form class="card weigh" data-form="goal">
-    <label>Target weight (kg)<input type="number" name="goal" inputmode="decimal" step="0.1" min="20" max="400" value="${state.goal || ''}" placeholder="—"></label>
-    <label>Height (cm, for BMI)<input type="number" name="height" inputmode="numeric" step="1" min="80" max="250" value="${state.height || ''}" placeholder="—"></label>
-    <button type="submit">Save goal</button>
-  </form>
+  <details class="card goalbox" id="goalbox">
+    <summary><span>Goal and height</span>
+      <b>${state.goal ? `${state.goal.toFixed(1)} kg` : 'No goal'}${state.height ? ` · ${state.height} cm` : ''}</b></summary>
+    <form class="weigh" data-form="goal">
+      <label>Target weight (kg)<input type="number" name="goal" inputmode="decimal" step="0.1" min="20" max="400" value="${state.goal || ''}" placeholder="e.g. 78"></label>
+      <label>Height (cm, for BMI)<input type="number" name="height" inputmode="numeric" step="1" min="80" max="250" value="${state.height || ''}" placeholder="e.g. 178"></label>
+      <button type="submit" class="primary">Save goal</button>
+    </form>
+  </details>
 
-  <h3>History</h3>
+  ${all.length ? `<h3>History <small>${all.length} entr${all.length === 1 ? 'y' : 'ies'}</small></h3>
   <section class="card rows">
-    ${all.length ? all.slice().reverse().map((e, i, arr) => {
-      const before = arr[i + 1];
-      return `<div class="row log"><span>${fmt(e.k, { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })}</span>
+    ${shown.map(e => {
+      const before = recent[recent.indexOf(e) + 1];
+      return `<div class="row log"><span>${fmt(e.k, { weekday: 'short', day: 'numeric', month: 'short' })}</span>
         ${before ? delta(e.w, before.w) : ''}
         <b>${e.w.toFixed(1)} kg</b>
         <button class="del" data-act="del-weight" data-id="${e.k}" aria-label="Delete entry">✕</button></div>`;
-    }).join('') : '<p class="empty">No entries yet.</p>'}
-  </section>`;
+    }).join('')}
+    ${recent.length > 7 ? `<button class="row more" data-act="more-weights">${showAllWeights ? 'Show less' : `Show all ${recent.length} entries`}</button>` : ''}
+  </section>` : ''}`;
 }
 
 // ---------- Progress ----------
@@ -617,6 +654,21 @@ view.addEventListener('click', e => {
     case 'tasbih-target': state.tasbih.target = Number(id); break;
     case 'tasbih-reset': state.tasbih.count = 0; break;
     case 'range': range = Number(id); break;
+    case 'more-weights': showAllWeights = !showAllWeights; break;
+    case 'kg-step': {
+      const input = el.closest('form').elements.kg;
+      const now = parseFloat(String(input.value).replace(',', '.'));
+      const next = (isFinite(now) ? now : 75) + Number(id);
+      input.value = Math.max(20, Math.min(400, Math.round(next * 10) / 10)).toFixed(1);
+      buzz();
+      return;
+    }
+    case 'open-goal': {
+      const box = document.getElementById('goalbox');
+      box.open = true;
+      box.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
     case 'span': span = Number(id); break;
     case 'theme': theme = id; applyTheme(); render(); return;
     case 'del-weight':
