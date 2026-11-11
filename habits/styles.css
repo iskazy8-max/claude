@@ -1,21 +1,35 @@
 :root {
-  --bg: #f3f6f4;
+  color-scheme: light;
+  --bg: #f4f7f6;
   --card: #ffffff;
-  --text: #12201c;
-  --muted: #64746f;
-  --line: #e2e8e5;
-  --accent: #0f766e;
-  --accent-soft: #d5efe9;
+  --text: #08110f;
+  --muted: #4a5a55;
+  --line: #d6dfdb;
+  --accent: #0b6b63;
+  --accent-soft: #d3f0ea;
   --up: #b45309;
   --down: #15803d;
 }
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #0b1512;
+  --card: #15221e;
+  --text: #f1f7f5;
+  --muted: #a3b5af;
+  --line: #2a3d37;
+  --accent: #2dd4bf;
+  --accent-soft: #123b35;
+  --up: #fbbf24;
+  --down: #4ade80;
+}
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root[data-theme="auto"] {
+    color-scheme: dark;
     --bg: #0b1512;
     --card: #15221e;
-    --text: #e8f1ee;
-    --muted: #8fa39d;
-    --line: #24352f;
+    --text: #f1f7f5;
+    --muted: #a3b5af;
+    --line: #2a3d37;
     --accent: #2dd4bf;
     --accent-soft: #123b35;
     --up: #fbbf24;
@@ -47,7 +61,7 @@ h3 { margin: 22px 4px 8px; font-size: 13px; text-transform: uppercase; letter-sp
 h3 small { float: right; font-size: 13px; }
 p { margin: 0; }
 
-.card { background: var(--card); border-radius: 16px; border: 1px solid var(--line); }
+.card { background: var(--card); border-radius: 16px; border: 1px solid var(--line); box-shadow: 0 1px 2px rgb(0 0 0 / .04); }
 
 /* header */
 .datebar { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; }
@@ -83,7 +97,7 @@ p { margin: 0; }
 .prayers { display: grid; grid-template-columns: repeat(5, 1fr); padding: 6px; gap: 4px; }
 .prayer { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 12px 2px; border-radius: 12px; }
 .prayer span { font-size: 13px; font-weight: 600; }
-.prayer em { font-style: normal; font-size: 14px; color: var(--muted); }
+.prayer em { font-style: normal; font-size: 15px; color: var(--muted); }
 .prayer.on { background: var(--accent-soft); }
 
 /* rows */
@@ -125,7 +139,8 @@ p { margin: 0; }
   display: inline-block; margin-top: 10px; padding: 5px 14px; border-radius: 999px;
   background: var(--accent-soft); color: var(--accent); font-weight: 700; font-size: 14px;
 }
-.dhikr.on { opacity: .55; }
+.dhikr.on { background: var(--accent-soft); border-color: transparent; }
+.dhikr.on .count { background: var(--accent); color: var(--card); }
 .dhikr:active { transform: scale(.985); }
 
 /* weight */

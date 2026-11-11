@@ -72,6 +72,14 @@ let tab = 'today';
 let cur = todayKey();
 let period = new Date().getHours() < 15 ? 'morning' : 'evening';
 let range = 30;
+let theme = document.documentElement.dataset.theme || 'light';
+
+function applyTheme() {
+  document.documentElement.dataset.theme = theme;
+  try { localStorage.setItem('habits-theme', theme); } catch (e) { /* not saved */ }
+  const dark = theme === 'dark' || (theme === 'auto' && matchMedia('(prefers-color-scheme: dark)').matches);
+  document.querySelector('meta[name="theme-color"]').content = dark ? '#0b1512' : '#f4f7f6';
+}
 
 const view = document.getElementById('view');
 const tabs = document.getElementById('tabs');
@@ -244,6 +252,11 @@ function renderProgress() {
         `<i title="${days[i]}" style="--l:${l}" class="${l >= 1 ? 'full' : l > 0 ? 'part' : ''}"></i>`).join('')}</div>
     </section>`;
   }).join('')}
+  <h3>Appearance</h3>
+  <div class="seg">
+    ${[['light', '☀️ Light'], ['dark', '🌙 Dark'], ['auto', 'Auto']].map(([id, l]) =>
+      `<button class="${theme === id ? 'on' : ''}" data-act="theme" data-id="${id}">${l}</button>`).join('')}
+  </div>
   <h3>Backup</h3>
   <section class="card rows">
     <button class="row" data-act="export"><span>Export data<small>Download a JSON backup</small></span><b>›</b></button>
@@ -294,6 +307,7 @@ view.addEventListener('click', e => {
       day(cur).adhkar[period] = {};
       break;
     case 'range': range = Number(id); break;
+    case 'theme': theme = id; applyTheme(); render(); return;
     case 'del-weight':
       if (!confirm('Delete this entry?')) return;
       delete state.weights[id];
@@ -347,5 +361,6 @@ document.addEventListener('visibilitychange', () => {
   render();
 });
 
+applyTheme();
 render();
 if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js');

@@ -8,6 +8,10 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Habits">
 <title>Habits</title>
+<script>
+try { document.documentElement.dataset.theme = localStorage.getItem('habits-theme') || 'light'; }
+catch (e) { document.documentElement.dataset.theme = 'light'; }
+</script>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icon-180.png">
