@@ -18,4 +18,4 @@ Host the folder on any HTTPS static host (e.g. GitHub Pages: *Settings → Pages
 
     python3 -m http.server 8000
 
-Plain HTML/CSS/JS — no build step. The adhkar list lives in `adhkar.js`.
+Plain HTML/CSS/JS — no build step. The app lives in `habits/`; the adhkar list is `habits/adhkar.js`.
